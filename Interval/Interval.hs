@@ -1,6 +1,6 @@
-module Range.Range
+module Interval.Interval
 ( 
-  Range(..)
+  Interval(..)
 , End(..)
 , EndType(..)
 , Side(..)
@@ -20,7 +20,7 @@ module Range.Range
 
 import Data.Function (on)
 
-newtype Range n = Range { to_pair :: (End n, End n) }
+newtype Interval n = Interval { to_pair :: (End n, End n) }
 
 data End n = End    { endtype :: EndType n
                     , side :: Side
@@ -35,9 +35,9 @@ instance (Show n) => Show (End n) where
     show (End (Inclusive x) High)   = show x ++ "]"
     show (End (Exclusive x) High)   = show x ++ ")"
 
-instance (Show n) => Show (Range n) where
-    show (Range ((End Nil _), (End Nil _)) ) = "( Nil )"
-    show (Range (e1, e2)) = show e1 ++ " - " ++ show e2
+instance (Show n) => Show (Interval n) where
+    show (Interval ((End Nil _), (End Nil _)) ) = "( Nil )"
+    show (Interval (e1, e2)) = show e1 ++ " - " ++ show e2
 
 data EndType v = Inclusive v | Exclusive v | Infinity | Nil
 
@@ -49,18 +49,18 @@ to_value (End Nil _)            = undefined
 to_value (End (Inclusive x) _)  = x
 to_value (End (Exclusive x) _)  = x
 
-make_range :: End n -> End n -> Range n
-make_range e1 e2 = Range (e1, e2)
+make_range :: End n -> End n -> Interval n
+make_range e1 e2 = Interval (e1, e2)
 
-inclusive_range, exclusive_range :: n -> n -> Range n
+inclusive_range, exclusive_range :: n -> n -> Interval n
 inclusive_range l r = make_range (End (Inclusive l) Low) (End (Inclusive r) High)
 exclusive_range l r = make_range (End (Exclusive l) Low) (End (Exclusive r) High)
 
-infinite_range, nil_range :: Range n
+infinite_range, nil_range :: Interval n
 infinite_range = make_range (End Infinity Low) (End Infinity High)
 nil_range = make_range (End Nil Low) (End Nil High)
 
-to_infinity, from_infinity, to_infinity_e, from_infinity_e :: n -> Range n
+to_infinity, from_infinity, to_infinity_e, from_infinity_e :: n -> Interval n
 to_infinity n = make_range (End (Inclusive n) Low) (End Infinity High)
 to_infinity_e n = make_range (End (Exclusive n) Low) (End Infinity High)
 
@@ -75,11 +75,11 @@ comp n (End (Exclusive x) Low)      = x < n
 comp n (End (Inclusive x) High)     = not $ x < n
 comp n (End (Exclusive x) High)     = n < x
 
-in_range :: (Ord n) => Range n -> n -> Bool
-in_range (Range (l, h)) n = ((==) `on` comp n) l h
+in_range :: (Ord n) => Interval n -> n -> Bool
+in_range (Interval (l, h)) n = ((==) `on` comp n) l h
 
-overlap :: (Ord n) => Range n -> Range n -> Bool
-overlap r1@(Range (ela, eha)) r2@(Range (elb, ehb)) =
+overlap :: (Ord n) => Interval n -> Interval n -> Bool
+overlap r1@(Interval (ela, eha)) r2@(Interval (elb, ehb)) =
     check_a || check_b
         where   check_a = check elb || check ehb
                     where   check (End Infinity _)  = True
